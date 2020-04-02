@@ -1,6 +1,6 @@
 # Project description
 [![CircleCI](https://circleci.com/gh/igorwojda/android-showcase.svg?style=shield)](https://circleci.com/gh/igorwojda/android-showcase)
-[![Kotlin Version](https://img.shields.io/badge/Kotlin-1.3.61-blue.svg)](https://kotlinlang.org)
+[![Kotlin Version](https://img.shields.io/badge/Kotlin-1.3.70-blue.svg)](https://kotlinlang.org)
 [![API](https://img.shields.io/badge/API-21%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=21)
 
 [![codebeat badge](https://codebeat.co/badges/7f632064-0be5-450f-b29f-f0e1460582ab)](https://codebeat.co/projects/github-com-igorwojda-android-showcase-master)
@@ -8,7 +8,7 @@
 [![CodeFactor](https://www.codefactor.io/repository/github/igorwojda/android-showcase/badge)](https://www.codefactor.io/repository/github/igorwojda/android-showcase)
 
 
-Showcase is a sample project that presents modern, 2019 approach to
+Showcase is a sample project that presents modern, 2020 approach to
 [Android](https://en.wikipedia.org/wiki/Android_(operating_system)) application development using
 [Kotlin](https://kotlinlang.org/) and latest tech-stack.
 

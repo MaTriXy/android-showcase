@@ -1,33 +1,34 @@
+rootProject.name = "android-showcase"
+
+include(
+    ":app",
+    ":feature_album",
+    ":feature_profile",
+    ":feature_favourite",
+    ":feature_base",
+    ":library_test_utils",
+    ":konsist_test",
+)
+
 pluginManagement {
     repositories {
         gradlePluginPortal()
         google()
-    }
-
-    plugins {
-        id(GradlePluginId.DETEKT) version GradlePluginVersion.DETEKT
-        id(GradlePluginId.KTLINT_GRADLE) version GradlePluginVersion.KTLINT_GRADLE
-        id(GradlePluginId.GRADLE_VERSION_PLUGIN) version GradlePluginVersion.GRADLE_VERSION_PLUGIN
-        id(GradlePluginId.KOTLIN_JVM) version GradlePluginVersion.KOTLIN
-        id(GradlePluginId.KOTLIN_ANDROID) version GradlePluginVersion.KOTLIN
-        id(GradlePluginId.KOTLIN_ANDROID_EXTENSIONS) version GradlePluginVersion.KOTLIN
-        id(GradlePluginId.ANDROID_APPLICATION) version GradlePluginVersion.ANDROID_GRADLE
-        id(GradlePluginId.ANDROID_LIBRARY) version GradlePluginVersion.ANDROID_GRADLE
-        id(GradlePluginId.ANDROID_DYNAMIC_FEATURE) version GradlePluginVersion.ANDROID_GRADLE
-        id(GradlePluginId.SAFE_ARGS) version GradlePluginVersion.SAFE_ARGS
-    }
-
-    resolutionStrategy {
-        eachPlugin {
-            when (requested.id.id) {
-                GradlePluginId.ANDROID_APPLICATION,
-                GradlePluginId.ANDROID_LIBRARY,
-                GradlePluginId.ANDROID_DYNAMIC_FEATURE -> useModule(GradleOldWayPlugins.ANDROID_GRADLE)
-                GradlePluginId.SAFE_ARGS -> useModule(GradleOldWayPlugins.SAFE_ARGS)
-            }
-        }
+        mavenCentral()
     }
 }
 
-rootProject.buildFileName = "build.gradle.kts"
-include(*ModuleDependency.getAllModules().toTypedArray())
+@Suppress("UnstableApiUsage")
+dependencyResolutionManagement {
+    repositories {
+        google()
+        // Added for testing local Konsist artifacts
+        mavenLocal()
+        mavenCentral()
+    }
+}
+
+// Generate type safe accessors when referring to other projects eg.
+// Before: implementation(project(":feature_album"))
+// After: implementation(projects.featureAlbum)
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")

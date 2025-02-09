@@ -16,7 +16,9 @@ out/
 
 # Gradle files
 .gradle/
-build/
+
+# Build folders
+**/build/
 
 # Local configuration file (sdk path, etc)
 local.properties
@@ -42,3 +44,6 @@ google-services.json
 
 # Cache of project
 .gradletasknamecache
+
+#MacOS DS_Store
+**/.DS_Store

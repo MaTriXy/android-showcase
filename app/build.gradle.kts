@@ -1,113 +1,92 @@
-import com.android.build.gradle.internal.dsl.BaseFlavor
-import com.android.build.gradle.internal.dsl.DefaultConfig
+import com.android.build.api.dsl.ApplicationDefaultConfig
+import java.util.Locale
 
 plugins {
-    id(GradlePluginId.ANDROID_APPLICATION)
-    id(GradlePluginId.KOTLIN_ANDROID)
-    id(GradlePluginId.KOTLIN_ANDROID_EXTENSIONS)
-    id(GradlePluginId.KTLINT_GRADLE)
-    id(GradlePluginId.SAFE_ARGS)
+    id("local.app")
 }
 
 android {
-    compileSdkVersion(AndroidConfig.COMPILE_SDK_VERSION)
+    val catalogs = extensions.getByType<VersionCatalogsExtension>()
+    val libs = catalogs.named("libs")
+
+    namespace = "com.igorwojda.showcase"
+
+    compileSdk = libs.findVersion("compileSdk").get().toString().toInt()
 
     defaultConfig {
-        applicationId = AndroidConfig.ID
-        minSdkVersion(AndroidConfig.MIN_SDK_VERSION)
-        targetSdkVersion(AndroidConfig.TARGET_SDK_VERSION)
-        buildToolsVersion(AndroidConfig.BUILD_TOOLS_VERSION)
+        minSdk = libs.findVersion("minSdk").get().toString().toInt()
 
-        versionCode = AndroidConfig.VERSION_CODE
-        versionName = AndroidConfig.VERSION_NAME
-        testInstrumentationRunner = AndroidConfig.TEST_INSTRUMENTATION_RUNNER
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    defaultConfig {
+        applicationId = "com.igorwojda.showcase"
+
+        versionCode = 1
+        versionName = "0.0.1" // SemVer (Major.Minor.Patch)
+        minSdk = 28
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        multiDexEnabled = true
+
+        vectorDrawables {
+            useSupportLibrary = true
+        }
 
         buildConfigFieldFromGradleProperty("apiBaseUrl")
         buildConfigFieldFromGradleProperty("apiToken")
-
-        buildConfigField("FEATURE_MODULE_NAMES", getDynamicFeatureModuleNames())
     }
 
     buildTypes {
-        getByName(BuildType.RELEASE) {
-            isMinifyEnabled = BuildTypeRelease.isMinifyEnabled
+        getByName("release") {
+            isMinifyEnabled = false
             proguardFiles("proguard-android.txt", "proguard-rules.pro")
-        }
-
-        getByName(BuildType.DEBUG) {
-            isMinifyEnabled = BuildTypeDebug.isMinifyEnabled
-        }
-
-        testOptions {
-            unitTests.isReturnDefaultValues = TestOptions.IS_RETURN_DEFAULT_VALUES
-        }
-
-        compileOptions {
-            sourceCompatibility = JavaVersion.VERSION_1_8
-            targetCompatibility = JavaVersion.VERSION_1_8
         }
     }
 
-    // Each feature module that is included in settings.gradle.kts is added here as dynamic feature
-    dynamicFeatures = ModuleDependency.getDynamicFeatureModules().toMutableSet()
+    @Suppress("UnstableApiUsage")
+    buildFeatures {
+        viewBinding = true
+        buildConfig = true
+        compose = true
+    }
 
-    lintOptions {
-        // By default lint does not check test sources, but setting this option means that lint will not even parse them
-        isIgnoreTestSources = true
+    composeOptions {
+        kotlinCompilerExtensionVersion = libs.findVersion("kotlinCompilerExtensionVersion").get().toString()
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8.toString()
+        jvmTarget = JavaVersion.VERSION_11.toString()
+    }
+
+    @Suppress("UnstableApiUsage")
+    testOptions {
+        unitTests.isReturnDefaultValues = true
     }
 }
 
 dependencies {
-    api(project(ModuleDependency.LIBRARY_BASE))
-
-    api(LibraryDependency.NAVIGATION_FRAGMENT_KTX)
-    api(LibraryDependency.NAVIGATION_UI_KTX)
-    implementation(LibraryDependency.OK_HTTP)
-    implementation(LibraryDependency.LOGGING_INTERCEPTOR)
-    implementation(LibraryDependency.PLAY_CORE)
-    implementation(LibraryDependency.STETHO)
-
-    implementation(LibraryDependency.STETHO_OK_HTTP)
-
-    api(LibraryDependency.RETROFIT)
-    api(LibraryDependency.RETROFIT_MOSHI_CONVERTER)
-
-    api(LibraryDependency.SUPPORT_CONSTRAINT_LAYOUT)
-    api(LibraryDependency.COORDINATOR_LAYOUT)
-    api(LibraryDependency.RECYCLER_VIEW)
-    api(LibraryDependency.MATERIAL)
-    api(LibraryDependency.FRAGMENT_KTX)
-    api(LibraryDependency.K_ANDROID)
-    api(LibraryDependency.LOTTIE)
-
-    addTestDependencies()
+    // Syntax utilizes Gradle TYPESAFE_PROJECT_ACCESSORS feature
+    implementation(projects.featureAlbum)
+    implementation(projects.featureProfile)
+    implementation(projects.featureFavourite)
 }
 
-fun BaseFlavor.buildConfigFieldFromGradleProperty(gradlePropertyName: String) {
+/*
+Takes value from Gradle project property and sets it as Android build config property eg.
+apiToken variable present in the settings.gradle file will be accessible as BuildConfig.GRADLE_API_TOKEN in the app.
+ */
+fun ApplicationDefaultConfig.buildConfigFieldFromGradleProperty(gradlePropertyName: String) {
     val propertyValue = project.properties[gradlePropertyName] as? String
     checkNotNull(propertyValue) { "Gradle property $gradlePropertyName is null" }
 
-    val androidResourceName = "GRADLE_${gradlePropertyName.toSnakeCase()}".toUpperCase()
+    val androidResourceName = "GRADLE_${gradlePropertyName.toSnakeCase()}".uppercase(Locale.getDefault())
     buildConfigField("String", androidResourceName, propertyValue)
 }
 
-fun getDynamicFeatureModuleNames() = ModuleDependency.getDynamicFeatureModules()
-    .map { it.replace(":feature_", "") }
-    .toSet()
-
-fun String.toSnakeCase() = this.split(Regex("(?=[A-Z])")).joinToString("_") { it.toLowerCase() }
-
-fun DefaultConfig.buildConfigField(name: String, value: Set<String>) {
-    // Generates String that holds Java String Array code
-    val strValue = value.joinToString(prefix = "{", separator = ",", postfix = "}", transform = { "\"$it\"" })
-    buildConfigField("String[]", name, strValue)
-}
+fun String.toSnakeCase() = this.split(Regex("(?=[A-Z])")).joinToString("_") { it.lowercase(Locale.getDefault()) }
